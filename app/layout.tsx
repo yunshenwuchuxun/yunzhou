@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -11,6 +11,11 @@ const jetbrains = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "云舟系统 · 考研养成核心",
   description: "宿主属性养成与考研进度管理系统",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({

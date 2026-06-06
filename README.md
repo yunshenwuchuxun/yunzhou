@@ -1,5 +1,9 @@
 # 云舟系统 · 考研养成核心
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yunshenwuchuxun/yunzhou)
+
+> 一键克隆部署后，仍需手动在 Vercel 控制台挂载 Postgres（Storage → 创建）并设置环境变量 `APP_PASSWORD` / `SESSION_SECRET`（详见下方「部署到 Vercel」章节）。
+
 一个「系统绑定宿主」主题的考研游戏化养成应用。前身是单文件 HTML 原型（见 `design/goddess.html`），现已重构为 Next.js 项目：支持密码登录、云端 Postgres 进度同步、跨设备使用。
 
 ## 技术栈

@@ -78,10 +78,17 @@ export default function Home() {
   const data = useStore((s) => s.data);
   const loaded = useStore((s) => s.loaded);
   const [view, setView] = useState("wisdom");
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // 移动端选中面板后自动收起抽屉
+  function switchView(k: string) {
+    setView(k);
+    setDrawerOpen(false);
+  }
 
   if (!loaded) {
     return (
@@ -111,8 +118,18 @@ export default function Home() {
       <Toast />
       {!data.hostName && <BindingOverlay />}
       <div className="main-app">
-        <Sidebar views={VIEWS} active={view} onSwitch={setView} />
+        {drawerOpen && <div className="drawer-backdrop" onClick={() => setDrawerOpen(false)} />}
+        <div className={`sidebar-wrap ${drawerOpen ? "open" : ""}`}>
+          <Sidebar views={VIEWS} active={view} onSwitch={switchView} />
+        </div>
         <div className="main-content">
+          <button
+            className="drawer-toggle"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="打开导航菜单"
+          >
+            <i className="fa-solid fa-bars" />
+          </button>
           <TopBar />
           <ActivePanel view={view} />
           <div className="ticker">&gt; 总线在线 · 进度已云端同步 · 遥测稳定</div>
