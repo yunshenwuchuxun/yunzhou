@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "验收 cheer 功能时核对质量门禁（无 lint/类型告警、行为正确）"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "核对 signalCat 触发点、节流逻辑与状态持久化是否符合约定"}

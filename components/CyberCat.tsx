@@ -11,6 +11,7 @@ export default function CyberCat() {
   const catSignal = useStore((s) => s.catSignal);
   const strokePet = useStore((s) => s.strokePet);
   const feedPet = useStore((s) => s.feedPet);
+  const cheerMe = useStore((s) => s.cheerMe);
 
   const petName = data?.petName ?? "AI-CAT-01";
   const petFood = data?.petFood ?? 100;
@@ -182,6 +183,28 @@ export default function CyberCat() {
       }, 3200);
       return () => clearTimeout(t);
     }
+    if (catSignal.type === "cheer") {
+      if (catSignal.text) say(catSignal.text);
+      setCat("belly");
+      setHeartKey((k) => k + 1);
+      const ox = phys.current.x / window.innerWidth;
+      if (catSignal.big) {
+        // 加强版：多段彩带（里程碑 / 主动求鼓励）
+        confetti({ particleCount: 80, spread: 75, startVelocity: 45, origin: { x: ox, y: 0.85 } });
+        const burst = setTimeout(
+          () => confetti({ particleCount: 60, spread: 100, scalar: 1.1, origin: { x: ox, y: 0.7 } }),
+          250,
+        );
+        const back = setTimeout(() => setCat("idle"), 2600);
+        return () => {
+          clearTimeout(burst);
+          clearTimeout(back);
+        };
+      }
+      confetti({ particleCount: 42, spread: 60, origin: { x: ox, y: 0.85 } });
+      const back = setTimeout(() => setCat("idle"), 2000);
+      return () => clearTimeout(back);
+    }
   }, [catSignal]);
 
   // 饥饿时显示不开心表情（非进食/抚摸态）
@@ -255,6 +278,9 @@ export default function CyberCat() {
             </button>
             <button className="btn-prime btn-gold" onClick={(e) => { e.stopPropagation(); feedPet(); }}>
               🐟 快速投喂（消耗5积分）
+            </button>
+            <button className="btn-prime" onClick={(e) => { e.stopPropagation(); cheerMe(); }}>
+              ✨ 求鼓励（让我给你加油喵）
             </button>
             <span className="muted" style={{ fontSize: 11 }}>提示：在商城背包点击食物可让猫咪进食。</span>
           </div>

@@ -16,7 +16,15 @@ import {
   isZhengzhiUnlocked,
 } from "./model";
 import { clamp, dateStr, uid } from "./util";
-import { announceTaskDone, fortuneForDate, CAT_FED, CAT_STROKED } from "./content";
+import {
+  announceTaskDone,
+  fortuneForDate,
+  CAT_FED,
+  CAT_STROKED,
+  CAT_ENCOURAGEMENTS,
+  CAT_MILESTONE,
+  CAT_COMBO_UNLOCK,
+} from "./content";
 import { playSound } from "./audio";
 
 // ---------- 在 draft 上操作的纯辅助 ----------
@@ -51,6 +59,34 @@ function mathCombo(d: AppState): boolean {
   return d.attrs.gaoshu >= COMBO_THRESHOLD && d.attrs.xiandai >= COMBO_THRESHOLD;
 }
 
+// ---------- 鼓励加油相关 ----------
+const ENCOURAGE_MARKS = [25, 50, 75, 100];
+const GRIND_CHEER_RATE = 0.25; // 刷点节流：仅约 1/4 概率触发，避免刷屏
+
+function pickEncouragement(): string {
+  return CAT_ENCOURAGEMENTS[Math.floor(Math.random() * CAT_ENCOURAGEMENTS.length)];
+}
+// 数值是否跨越某个里程碑阈值；未跨越返回 null
+function crossedMark(before: number, after: number): number | null {
+  for (const m of ENCOURAGE_MARKS) {
+    if (before < m && after >= m) return m;
+  }
+  return null;
+}
+// 刷点/精进后的鼓励：跨越里程碑必给加强彩带，否则按概率节流给普通彩带
+function cheerForGrind(
+  signal: (s: Omit<CatSignal, "ts">) => void,
+  before: number,
+  after: number,
+) {
+  const mark = crossedMark(before, after);
+  if (mark != null) {
+    signal({ type: "cheer", text: CAT_MILESTONE(mark), big: true });
+  } else if (Math.random() < GRIND_CHEER_RATE) {
+    signal({ type: "cheer", text: pickEncouragement() });
+  }
+}
+
 // ---------- 防抖保存 ----------
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 async function putState(data: AppState) {
@@ -65,7 +101,13 @@ async function putState(data: AppState) {
   }
 }
 
-export type CatSignal = { type: "stroke" | "feed" | "eat" | "sad"; ts: number; food?: string };
+export type CatSignal = {
+  type: "stroke" | "feed" | "eat" | "sad" | "cheer";
+  ts: number;
+  food?: string;
+  text?: string; // cheer 时显示的鼓励气泡文案
+  big?: boolean; // cheer 时是否加强彩带（里程碑 / 主动求鼓励）
+};
 
 interface Store {
   data: AppState | null;
@@ -80,6 +122,7 @@ interface Store {
   apply: (fn: (d: AppState) => void) => void;
   signalCat: (s: Omit<CatSignal, "ts">) => void;
   pushToast: (text: string) => void;
+  cheerMe: () => void;
 
   // 领域 actions
   bind: (name: string, age: number) => void;
@@ -160,6 +203,8 @@ export const useStore = create<Store>((set, get) => ({
 
   signalCat: (s) => set({ catSignal: { ...s, ts: Date.now() } }),
   pushToast: (text) => set({ toast: { text, ts: Date.now() } }),
+  // 主动求鼓励：每次都给加强版彩带
+  cheerMe: () => get().signalCat({ type: "cheer", text: pickEncouragement(), big: true }),
 
   bind: (name, age) => get().apply((d) => {
     d.hostName = name;
@@ -184,12 +229,14 @@ export const useStore = create<Store>((set, get) => ({
       get().pushToast("考研政治将于 9 月后解锁。");
       return;
     }
+    const before = get().data?.attrs[key] ?? 0;
     get().apply((d) => {
       adjustUnit(d, key, SKILL_GRIND_STEP);
       d.lastWisdomActiveDate = dateStr();
       d.todayDoneLogs.push(`🧠 [刷技能点] ${key} +${SKILL_GRIND_STEP}`);
     });
     playSound("success");
+    cheerForGrind(get().signalCat, before, get().data?.attrs[key] ?? 0);
   },
 
   addTalent: (name) => get().apply((d) => {
@@ -198,28 +245,39 @@ export const useStore = create<Store>((set, get) => ({
   removeTalent: (id) => get().apply((d) => {
     d.talents = d.talents.filter((t) => t.id !== id);
   }),
-  grindTalent: (id) => get().apply((d) => {
-    adjustUnit(d, `talent:${id}`, SKILL_GRIND_STEP);
-    const t = d.talents.find((x) => x.id === id);
-    if (t) d.todayDoneLogs.push(`🎨 [才艺精进] ${t.name} +${SKILL_GRIND_STEP}`);
-  }),
+  grindTalent: (id) => {
+    const before = get().data?.talents.find((x) => x.id === id)?.points ?? 0;
+    get().apply((d) => {
+      adjustUnit(d, `talent:${id}`, SKILL_GRIND_STEP);
+      const t = d.talents.find((x) => x.id === id);
+      if (t) d.todayDoneLogs.push(`🎨 [才艺精进] ${t.name} +${SKILL_GRIND_STEP}`);
+    });
+    cheerForGrind(get().signalCat, before, get().data?.talents.find((x) => x.id === id)?.points ?? 0);
+  },
 
-  toggleDaily: (id) => get().apply((d) => {
-    const t = d.dailyTasks.find((x) => x.id === id);
-    if (!t) return;
-    if (!t.done) {
-      t.done = true;
-      adjustUnit(d, t.attrKey, DAILY_TASK_GAIN);
-      earn(d, DAILY_TASK_REWARD);
-      d.todayDoneLogs.push(`✅ [每日必做] ${t.name} 完成 +${DAILY_TASK_GAIN}属性 +${DAILY_TASK_REWARD}积分`);
-      playSound("success");
-    } else {
-      t.done = false;
-      adjustUnit(d, t.attrKey, -DAILY_TASK_GAIN);
-      d.currency = Math.max(0, d.currency - DAILY_TASK_REWARD);
-      d.todayStats.pointsEarned -= DAILY_TASK_REWARD;
+  toggleDaily: (id) => {
+    const wasDone = get().data?.dailyTasks.find((x) => x.id === id)?.done ?? false;
+    get().apply((d) => {
+      const t = d.dailyTasks.find((x) => x.id === id);
+      if (!t) return;
+      if (!t.done) {
+        t.done = true;
+        adjustUnit(d, t.attrKey, DAILY_TASK_GAIN);
+        earn(d, DAILY_TASK_REWARD);
+        d.todayDoneLogs.push(`✅ [每日必做] ${t.name} 完成 +${DAILY_TASK_GAIN}属性 +${DAILY_TASK_REWARD}积分`);
+        playSound("success");
+      } else {
+        t.done = false;
+        adjustUnit(d, t.attrKey, -DAILY_TASK_GAIN);
+        d.currency = Math.max(0, d.currency - DAILY_TASK_REWARD);
+        d.todayStats.pointsEarned -= DAILY_TASK_REWARD;
+      }
+    });
+    // 仅在「由未完成→完成」时鼓励，每次都给普通彩带
+    if (!wasDone && get().data?.dailyTasks.find((x) => x.id === id)?.done) {
+      get().signalCat({ type: "cheer", text: pickEncouragement() });
     }
-  }),
+  },
   addCustomDaily: (name, attrKey, penalty) => get().apply((d) => {
     d.dailyTasks.push({ id: `c_${uid()}`, name, attrKey, penalty, builtin: false, done: false });
   }),
@@ -239,6 +297,7 @@ export const useStore = create<Store>((set, get) => ({
     const task = data.coreTasks.find((t) => t.id === id);
     if (!task || task.completed) return;
     let reward = task.mode === "gamble" ? 25 : 10;
+    const comboBefore = mathCombo(data);
     get().apply((d) => {
       const t = d.coreTasks.find((x) => x.id === id)!;
       t.completed = true;
@@ -252,6 +311,13 @@ export const useStore = create<Store>((set, get) => ({
     });
     get().pushToast(announceTaskDone(data.hostName || "宿主", task.text, reward));
     playSound("success");
+    // 完成契约每次都鼓励；若此次刚好解锁数学连携则升级为里程碑彩带
+    const next = get().data;
+    if (next && !comboBefore && mathCombo(next)) {
+      get().signalCat({ type: "cheer", text: CAT_COMBO_UNLOCK, big: true });
+    } else {
+      get().signalCat({ type: "cheer", text: pickEncouragement() });
+    }
   },
   removeCoreTask: (id) => get().apply((d) => {
     d.coreTasks = d.coreTasks.filter((t) => t.id !== id);

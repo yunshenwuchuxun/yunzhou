@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "新增 cheer 信号与 cheerMe action 需遵循 zustand store / signalCat / apply 防抖保存约定"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "CyberCat 内响应 cheer 信号、触发 say + confetti 需符合组件副作用/cleanup 规范"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "扩展 CatSignal 联合类型需保持类型安全约定"}

@@ -13,6 +13,23 @@ export const CAT_DIALOGUES = [
   "宿主专注的样子，是这个系统里最高能的信号。",
 ];
 
+// 鼓励加油语料池（完成任务 / 刷技能点等行为即时正反馈）
+export const CAT_ENCOURAGEMENTS = [
+  "干得漂亮喵！这一下又把上岸的概率推高了一点。",
+  "看到了看到了，宿主的专注度正在拉满！继续冲！",
+  "每一次努力都被系统记录在案，稳稳地加油喵～",
+  "就是这个节奏！把势能攒起来，迟早要破壁的。",
+  "宿主好棒，我把这份努力存进量子缓存了喵。",
+  "嗷呜——又前进一步！我可是你最忠实的应援团喵。",
+  "别小看这一点点，复利之下都是质变，加油！",
+  "能量同步中…检测到宿主斗志上扬，给你鼓掌喵！",
+];
+
+// 里程碑达成文案（属性跨越关键阈值 / 数学连携解锁）
+export const CAT_MILESTONE = (mark: number) =>
+  `🎉 里程碑达成！该维度突破 ${mark} 点，阶位跃迁——宿主你太强了喵！`;
+export const CAT_COMBO_UNLOCK = "⚡ 数学连携已激活！高数 × 现代双线贯通，契约收益加成上线喵！";
+
 export const CAT_HUNGRY = (petName: string) => `【能量告急】${petName} 快饿扁了…投喂点东西嘛喵。`;
 export const CAT_LONELY = (host: string) => `量子同步率走低…${host}是不是把我忘了喵。`;
 export const CAT_FED = "摄入高能生物质，饱食能级跃升！";
