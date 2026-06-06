@@ -110,9 +110,14 @@ function PetBody({ type }: { type: PetType }) {
   }
 }
 
+// 宠物体高约 90px。贴近视口最底边的窄带栖息（仅露在最下方），
+// 避免在底部漫游时压住内容卡片正文。
+const PET_HEIGHT = 90;
+
 // 当前栖息地面线（贴地基准 y）。运动引擎与拖拽松手都以此为基准。
+// 收敛到贴底窄带：宠物本体几乎贴住视口底边，最大限度让出内容区。
 function groundY() {
-  return window.innerHeight - 110;
+  return window.innerHeight - PET_HEIGHT - 4;
 }
 
 // 宠物本体 + 运动/拖拽/独白引擎。仅在未隐藏时挂载，
@@ -172,8 +177,9 @@ function PetEntity() {
 
     // 窗口尺寸变化时夹取，防止宠物跑出视口
     function onResize() {
-      const maxX = window.innerWidth - 90;
-      const maxY = window.innerHeight - 90;
+      const maxX = window.innerWidth - PET_HEIGHT;
+      const maxY = window.innerHeight - PET_HEIGHT;
+      // 默认栖息回到贴底窄带（非拖拽放置态下重新贴地）
       p.baseY = Math.min(p.baseY, maxY);
       p.x = Math.max(0, Math.min(maxX, p.x));
       p.targetX = Math.max(0, Math.min(maxX, p.targetX));
@@ -196,7 +202,7 @@ function PetEntity() {
       const roll = Math.random();
       if (roll < 0.18) {
         // 低频不定时轻跳跃：原地短促上下弹跳（带极小水平位移），跳完回 idle
-        const maxX = window.innerWidth - 90;
+        const maxX = window.innerWidth - PET_HEIGHT;
         p.x = Math.max(0, Math.min(maxX, p.x + (Math.random() * 24 - 12)));
         p.targetX = p.x;
         el!.style.left = p.x + "px";
@@ -209,7 +215,7 @@ function PetEntity() {
         // 小范围游走：以当前 x 为中心 ±40~80px 随机选点
         const span = 40 + Math.random() * 40;
         const dir = Math.random() < 0.5 ? -1 : 1;
-        const maxX = window.innerWidth - 90;
+        const maxX = window.innerWidth - PET_HEIGHT;
         p.targetX = Math.max(0, Math.min(maxX, p.x + dir * span));
         setCat("walking");
       } else if (roll < 0.72) {
@@ -276,6 +282,10 @@ function PetEntity() {
   useEffect(() => {
     const el = catRef.current;
     if (!el) return;
+    // 容器 pointer-events:none 透传点击到下层内容，仅宠物本体可交互；
+    // 拖拽监听挂到宠物本体（mesh），它才是接收指针事件的可见元素。
+    const grab = el.querySelector<HTMLElement>(".pet-mesh");
+    if (!grab) return;
     const p = phys.current;
     let down = false;
     let ox = 0;
@@ -296,8 +306,8 @@ function PetEntity() {
     }
     function onMove(e: MouseEvent) {
       if (!down) return;
-      p.x = Math.max(0, Math.min(window.innerWidth - 90, e.clientX - ox));
-      p.y = Math.max(0, Math.min(window.innerHeight - 90, e.clientY - oy));
+      p.x = Math.max(0, Math.min(window.innerWidth - PET_HEIGHT, e.clientX - ox));
+      p.y = Math.max(0, Math.min(window.innerHeight - PET_HEIGHT, e.clientY - oy));
       el!.style.left = p.x + "px";
       el!.style.top = p.y + "px";
     }
@@ -316,11 +326,11 @@ function PetEntity() {
       say("已在此处重新锚定坐标。");
     }
 
-    el.addEventListener("mousedown", onDown);
+    grab.addEventListener("mousedown", onDown);
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
     return () => {
-      el.removeEventListener("mousedown", onDown);
+      grab.removeEventListener("mousedown", onDown);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mouseup", onUp);
     };
@@ -397,10 +407,12 @@ function PetEntity() {
 
   return (
     <>
-      <div id="cyber-pet" ref={catRef} onClick={toggleHub}>
+      {/* 容器 pointer-events:none（见 CSS），点击穿透到下层内容；
+          仅宠物本体 mesh 恢复 pointer-events 并承接点击/拖拽 */}
+      <div id="cyber-pet" ref={catRef}>
         <div className={`pet-bubble ${showBubble ? "show" : ""}`}>{bubble}</div>
         {heartKey > 0 && <div className="cat-heart" key={heartKey}>💗</div>}
-        <div className={meshClass}>
+        <div className={meshClass} onClick={toggleHub}>
           <PetBody type={petType} />
           {showBowl && <div className="cat-bowl" />}
         </div>

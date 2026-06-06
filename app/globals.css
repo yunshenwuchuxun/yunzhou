@@ -98,7 +98,45 @@ body {
 
   /* 移动端收窄内容内边距，避免横向拥挤/溢出 */
   .main-content { padding: 16px 14px; }
-  .top-navbar { padding: 12px 16px; gap: 10px; }
+  .top-navbar { padding: 12px 14px; gap: 10px; }
+}
+
+/* ===== 窄屏横向溢出防护 (<=414px：覆盖 360/390/414 常见手机) ===== */
+@media (max-width: 414px) {
+  /* 根容器与内容区不产生横向滚动 */
+  html, body { overflow-x: hidden; max-width: 100%; }
+  .main-app { width: 100%; max-width: 100vw; overflow-x: hidden; }
+  .main-content { padding: 14px 10px; max-width: 100vw; overflow-x: hidden; }
+
+  /* 卡片/面板收窄内边距并锁宽，box-sizing 已全局 border-box */
+  .panel-card { padding: 16px 14px; max-width: 100%; }
+  .view-panel { padding-right: 0; max-width: 100%; }
+  .panel-title { font-size: 17px; }
+
+  /* 顶栏内框换行不溢出 */
+  .top-navbar { padding: 10px 12px; gap: 8px; max-width: 100%; }
+  .countdown, .top-currency { font-size: 12px; }
+
+  /* 所有网格强制单列 + 子项允许收缩，杜绝固定列宽撑破视口 */
+  .dashboard-grid, .task-view-grid, .mall-grid, .review-flex-box,
+  .grid-3-col, .goods-grid, .bag-grid {
+    grid-template-columns: 1fr !important; gap: 12px;
+  }
+  .dashboard-grid > *, .task-view-grid > *, .mall-grid > *, .review-flex-box > *,
+  .grid-3-col > *, .goods-grid > *, .bag-grid > * { min-width: 0; max-width: 100%; }
+
+  /* flex 行允许换行，子项可收缩，长文本截断不撑宽 */
+  .task-node, .daily-row, .goods-card, .bag-node, .sys-name-row { flex-wrap: wrap; min-width: 0; }
+  .task-node > *, .daily-row > *, .goods-card > * { min-width: 0; }
+  .task-node h4, .task-node p { word-break: break-word; }
+
+  /* 转盘/卡片内边距收窄，避免固定宽元素溢出 */
+  .wheel-panel { padding: 18px 12px; }
+  .card-mini { padding: 14px 12px; }
+  .log-screen, .review-textarea { max-width: 100%; }
+
+  /* ticker 跟随收窄边距，避免与底部 dock 重叠时溢出 */
+  .ticker { left: 12px; right: 12px; }
 }
 .host-card { text-align: center; border-bottom: 1px dashed rgba(0, 243, 255, 0.15); padding-bottom: 22px; }
 .avatar-frame { width: 100px; height: 100px; border-radius: 4px; border: 1px solid var(--panel-border); margin: 0 auto 16px;
@@ -209,15 +247,19 @@ body {
 /* ===== 桌面宠物（多物种共享骨架） ===== */
 /* 共享：容器、躯干/头/腿/尾的几何位置与所有状态动画都挂在 .pet-mesh 上，
    各物种仅通过 .pet-mesh.<type> 覆盖配色/局部造型与额外贴片。 */
-#cyber-pet { position: fixed; z-index: 99999; width: 85px; height: 90px; cursor: grab; user-select: none; }
-#cyber-pet.dragging { cursor: grabbing; }
+/* 容器透传点击：空白区不拦截，点击穿透到下层内容卡片；
+   仅宠物本体（.pet-mesh）与气泡恢复指针交互 */
+#cyber-pet { position: fixed; z-index: 99999; width: 85px; height: 90px; user-select: none; pointer-events: none; }
+#cyber-pet .pet-mesh { cursor: grab; pointer-events: auto; }
+#cyber-pet.dragging .pet-mesh { cursor: grabbing; }
 .pet-mesh { width: 100%; height: 100%; position: relative; transition: transform 0.3s ease; }
 .cat-torso { position: absolute; bottom: 16px; left: 16px; width: 48px; height: 28px; background: #090e26; border: 2px solid var(--primary); border-radius: 14px; box-shadow: 0 0 15px var(--primary-glow); }
 .cat-head { position: absolute; top: -16px; right: -12px; width: 26px; height: 26px; background: #090e26; border: 2px solid var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; }
 .cat-eyes { width: 14px; height: 4px; display: flex; justify-content: space-between; }
 .cat-eyes::before, .cat-eyes::after { content: ""; width: 4px; height: 4px; background: var(--green); border-radius: 50%; box-shadow: 0 0 6px var(--green); }
-.cat-leg { position: absolute; bottom: -11px; width: 5px; height: 13px; background: var(--primary); border-radius: 2px; transform-origin: top center; }
-.leg-fr { left: 10px; } .leg-fl { left: 18px; } .leg-br { right: 10px; } .leg-bl { right: 18px; }
+/* 腿顶上移至 bottom:6px 与躯干底(bottom:16px,height28→底16)重叠衔接，消除腿与躯干脱节的悬空感 */
+.cat-leg { position: absolute; bottom: 0px; width: 5px; height: 18px; background: var(--primary); border-radius: 2px 2px 3px 3px; transform-origin: top center; }
+.leg-fr { left: 12px; } .leg-fl { left: 20px; } .leg-br { right: 12px; } .leg-bl { right: 20px; }
 .cat-tail { position: absolute; top: 5px; left: -11px; width: 16px; height: 5px; background: var(--primary); border-radius: 3px; transform-origin: right center; animation: tailShake 1.4s infinite ease-in-out; box-shadow: 0 0 10px var(--primary-glow); }
 @keyframes tailShake { 0%, 100% { transform: rotate(20deg); } 50% { transform: rotate(-20deg); } }
 .pet-mesh.walking .leg-fr { animation: legSwing 0.2s infinite alternate linear; }
@@ -268,24 +310,28 @@ body {
 .panda-armor { position: absolute; bottom: 4px; left: 6px; width: 16px; height: 12px; background: linear-gradient(135deg, var(--primary), #2b6bff); border-radius: 3px; box-shadow: 0 0 10px var(--primary-glow); }
 
 /* ---- 物种 3：赤焰小龙（火焰渐变 + 龙角 + 喷火流光） ---- */
-.pet-mesh.flame-dragon .cat-torso { background: linear-gradient(160deg, #2a0a00, #5a1500); border-color: #ff7a18; border-radius: 16px 16px 14px 22px; box-shadow: 0 0 16px rgba(255,90,20,0.55); }
+/* 躯干底沿改为对称小圆角，四条龙腿均匀扎底，避免一侧大圆角把腿吞掉显脱节 */
+.pet-mesh.flame-dragon .cat-torso { background: linear-gradient(160deg, #2a0a00, #5a1500); border-color: #ff7a18; border-radius: 16px 16px 8px 8px; box-shadow: 0 0 16px rgba(255,90,20,0.55); }
 .pet-mesh.flame-dragon .cat-head { background: #3a0d00; border-color: #ff7a18; box-shadow: 0 0 12px rgba(255,120,30,0.55); }
 .pet-mesh.flame-dragon .cat-eyes::before, .pet-mesh.flame-dragon .cat-eyes::after { background: #ffd60a; box-shadow: 0 0 7px #ff7a18; }
 .pet-mesh.flame-dragon .cat-tail { width: 18px; background: linear-gradient(90deg, #ff7a18, #ffd60a); box-shadow: 0 0 12px rgba(255,120,30,0.7); border-radius: 0 4px 4px 0; }
-.pet-mesh.flame-dragon .cat-leg { background: #ff7a18; }
+/* 龙腿：上接躯干的渐变小柱 + 底部爪尖，顶部贴入躯干底沿 */
+.pet-mesh.flame-dragon .cat-leg { background: linear-gradient(180deg, #ff7a18, #b03000); border-radius: 2px 2px 1px 1px; clip-path: polygon(10% 0, 90% 0, 100% 78%, 50% 100%, 0 78%); }
 .dragon-horn { position: absolute; top: -8px; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 9px solid #ffd60a; }
 .dragon-horn-l { left: 2px; transform: rotate(-18deg); } .dragon-horn-r { right: 2px; transform: rotate(18deg); }
 .dragon-flame { position: absolute; top: 6px; right: -16px; width: 14px; height: 8px; background: radial-gradient(circle at left, #ffd60a, #ff3b30 70%, transparent); border-radius: 50%; filter: blur(0.4px); animation: dragonFlame 0.5s infinite alternate; }
 @keyframes dragonFlame { 0% { opacity: 0.55; transform: scaleX(0.85); } 100% { opacity: 1; transform: scaleX(1.25); } }
 
 /* ---- 物种 4：机械狼（低多边形锐利 + 红色横向扫描眼） ---- */
-.pet-mesh.cyber-wolf .cat-torso { background: #0a0d18; border-color: #8a93ad; border-radius: 4px; clip-path: polygon(0 30%, 12% 0, 100% 12%, 100% 88%, 86% 100%, 0 70%); box-shadow: 0 0 12px rgba(255,55,95,0.35); }
-.pet-mesh.cyber-wolf .cat-head { background: #0a0d18; border-color: #8a93ad; border-radius: 3px; clip-path: polygon(0 25%, 40% 0, 100% 30%, 100% 100%, 20% 100%); }
+/* 躯干底边收为平直（仅切上沿与前后侧棱），让四条腿稳稳扎在平底上，消除脱节 */
+.pet-mesh.cyber-wolf .cat-torso { background: #0a0d18; border-color: #8a93ad; border-radius: 3px; clip-path: polygon(0 38%, 14% 8%, 90% 0, 100% 30%, 100% 100%, 0 100%); box-shadow: 0 0 12px rgba(255,55,95,0.35); }
+.pet-mesh.cyber-wolf .cat-head { background: #0a0d18; border-color: #8a93ad; border-radius: 3px; clip-path: polygon(0 30%, 44% 0, 100% 22%, 100% 92%, 24% 100%); }
 .pet-mesh.cyber-wolf .cat-eyes { width: 16px; }
 .pet-mesh.cyber-wolf .cat-eyes::before, .pet-mesh.cyber-wolf .cat-eyes::after { background: var(--red); box-shadow: 0 0 8px var(--red); width: 6px; height: 2px; border-radius: 0; animation: wolfScan 1.6s infinite ease-in-out; }
 @keyframes wolfScan { 0%, 100% { opacity: 1; } 45% { opacity: 0.25; } }
 .pet-mesh.cyber-wolf .cat-tail { background: #8a93ad; box-shadow: 0 0 8px rgba(138,147,173,0.5); clip-path: polygon(0 40%, 100% 0, 100% 100%); width: 18px; }
-.pet-mesh.cyber-wolf .cat-leg { background: #8a93ad; }
+/* 狼腿：锐利的低多边形棱柱，顶部更宽贴住平底躯干 */
+.pet-mesh.cyber-wolf .cat-leg { background: linear-gradient(180deg, #8a93ad, #5a6273); border-radius: 1px; clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%); }
 .wolf-ear { position: absolute; top: -8px; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 10px solid #8a93ad; }
 .wolf-ear-l { left: 0; transform: rotate(-10deg); } .wolf-ear-r { right: 0; transform: rotate(10deg); }
 
@@ -401,10 +447,24 @@ body {
 :root[data-theme="light"] .bag-strip { background: rgba(0, 0, 0, 0.03); border-color: rgba(0, 0, 0, 0.08); }
 :root[data-theme="light"] .progress-track { background: rgba(0, 0, 0, 0.08); border-color: rgba(0, 0, 0, 0.06); }
 :root[data-theme="light"] .config-avatar { background: rgba(0, 0, 0, 0.04); }
-/* 浅色下量子猫及其周边（保留青色描边/发光，仅换深色填充） */
-:root[data-theme="light"] .cat-torso,
-:root[data-theme="light"] .cat-head { background: #e3edf5; }
+/* 浅色下仅量子猫换浅色填充（保留青色描边/发光）；
+   熊猫/龙/狼各自保留辨识配色，避免被统一染成浅蓝而失去区分度 */
+:root[data-theme="light"] .pet-mesh.quantum-cat .cat-torso,
+:root[data-theme="light"] .pet-mesh.quantum-cat .cat-head { background: #e3edf5; }
+/* 浅色下熊猫：白体配深边描，避免白底白体糊成一片 */
+:root[data-theme="light"] .pet-mesh.mecha-panda .cat-torso,
+:root[data-theme="light"] .pet-mesh.mecha-panda .cat-head { background: #ffffff; border-color: #2b3346; box-shadow: 0 0 8px rgba(43,51,70,0.25); }
 :root[data-theme="light"] .pet-bubble { background: rgba(255, 255, 255, 0.95); color: var(--text-main); }
+/* 浅色下常驻切换坞：浅玻璃浅底，文字/边框清晰 */
+:root[data-theme="light"] .pet-dock { background: rgba(255, 255, 255, 0.78); border-color: rgba(0, 0, 0, 0.1); box-shadow: 0 6px 22px rgba(0, 80, 110, 0.15); }
+:root[data-theme="light"] .pet-dock-chip,
+:root[data-theme="light"] .pet-dock-toggle,
+:root[data-theme="light"] .pet-dock-recall { background: rgba(255, 255, 255, 0.7); border-color: rgba(0, 0, 0, 0.12); color: var(--text-muted); }
+:root[data-theme="light"] .pet-dock-chip:hover,
+:root[data-theme="light"] .pet-dock-toggle:hover { border-color: var(--primary); color: var(--primary); background: rgba(0, 143, 176, 0.08); }
+:root[data-theme="light"] .pet-dock-chip.active { border-color: var(--primary); background: rgba(0, 143, 176, 0.14); }
+:root[data-theme="light"] .pet-dock-recall { color: var(--primary); border-color: var(--primary); }
+:root[data-theme="light"] .pet-dock-recall:hover { background: rgba(0, 143, 176, 0.1); }
 :root[data-theme="light"] .pet-hub { background: rgba(255, 255, 255, 0.92); box-shadow: 0 15px 45px rgba(0, 80, 110, 0.18); }
 :root[data-theme="light"] .cat-bowl { background: #d6deea; }
 /* 浅色下残余深色通知/输出表面 */
