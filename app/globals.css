@@ -281,3 +281,8 @@ body {
 :root[data-theme="light"] .pet-bubble { background: rgba(255, 255, 255, 0.95); color: var(--text-main); }
 :root[data-theme="light"] .pet-hub { background: rgba(255, 255, 255, 0.92); box-shadow: 0 15px 45px rgba(0, 80, 110, 0.18); }
 :root[data-theme="light"] .cat-bowl { background: #d6deea; }
+/* 浅色下残余深色通知/输出表面 */
+:root[data-theme="light"] .toast { background: rgba(255, 255, 255, 0.96); color: var(--text-main); }
+:root[data-theme="light"] .log-screen { background: #eef3f8; box-shadow: inset 0 0 20px rgba(0, 80, 110, 0.06); }
+:root[data-theme="light"] .bag-node { background: rgba(0, 0, 0, 0.03); border-color: rgba(0, 0, 0, 0.06); }
+:root[data-theme="light"] .avatar-frame { background: #dce6ef; }
