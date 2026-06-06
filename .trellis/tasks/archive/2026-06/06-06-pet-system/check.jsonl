@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "验收宠物系统/移动端时核对质量门禁（无 lint/类型告警、行为正确、无横向溢出）"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "核对 petType 持久化、migrate 兼容与切换逻辑是否符合约定"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "核对多形态渲染与抽屉导航的组件实现是否符合规范"}

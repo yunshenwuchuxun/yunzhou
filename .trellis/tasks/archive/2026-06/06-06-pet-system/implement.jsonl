@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "宠物系统新增 petType 字段、切换 action、migrate 兼容均需遵循 zustand store / state 持久化约定"}
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "CyberCat 按 petType 多形态渲染、Sidebar 抽屉化、汉堡导航需符合组件副作用/结构规范"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "petType 联合类型、宠物配置表需保持类型安全约定"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "新增宠物配置/渲染相关文件需放置在约定目录"}
