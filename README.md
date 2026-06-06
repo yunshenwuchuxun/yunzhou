@@ -22,7 +22,7 @@ pnpm install
 pnpm dev
 ```
 
-打开 http://localhost:3000 ，用密码登录（默认见 `.env.local` 的 `APP_PASSWORD`）。
+打开 http://localhost:3002 ，用密码登录（默认见 `.env.local` 的 `APP_PASSWORD`）。
 开发环境无需数据库：状态会落到本地 `.data/state.json`（已 gitignore）。
 
 环境变量（`.env.local`，已 gitignore）：
