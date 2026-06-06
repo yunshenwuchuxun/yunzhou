@@ -241,6 +241,16 @@ body {
 @keyframes nibble { 0% { transform: translateY(2px) rotate(8deg); } 100% { transform: translateY(4px) rotate(2deg); } }
 /* 不开心眼睛 */
 .pet-mesh.sad .cat-eyes::before, .pet-mesh.sad .cat-eyes::after { background: var(--red); box-shadow: 0 0 6px var(--red); width: 5px; height: 2px; border-radius: 0; }
+/* 轻跳跃：短促上下弹跳（约 0.56s） */
+.pet-mesh.jumping { animation: petHop 0.56s ease-out; }
+@keyframes petHop {
+  0% { transform: translateY(0); }
+  35% { transform: translateY(-22px) scaleY(1.05); }
+  60% { transform: translateY(-8px); }
+  80% { transform: translateY(-14px); }
+  100% { transform: translateY(0); }
+}
+.pet-mesh.jumping .cat-leg { transform: rotate(8deg); }
 
 /* ---- 物种 1：量子猫（青色霓虹，尖耳） ---- */
 .pet-mesh.quantum-cat .cat-head::before, .pet-mesh.quantum-cat .cat-head::after { content: ""; position: absolute; top: -6px; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid var(--primary); }
@@ -289,6 +299,36 @@ body {
 .pet-chip-emoji { font-size: 20px; line-height: 1; }
 .pet-chip-name { font-size: 10px; color: var(--text-muted); text-align: center; }
 .pet-chip.active .pet-chip-name { color: var(--primary); }
+
+/* ===== 常驻快捷切换坞（固定右下角，低干扰） ===== */
+.pet-dock {
+  position: fixed; right: 16px; bottom: 16px; z-index: 100001;
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px; border-radius: 999px;
+  background: rgba(5, 7, 20, 0.62); border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.4);
+  opacity: 0.78; transition: opacity 0.2s;
+}
+.pet-dock:hover { opacity: 1; }
+.pet-dock-chip, .pet-dock-toggle, .pet-dock-recall {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.4);
+  color: var(--text-muted); cursor: pointer; font-family: inherit; transition: all 0.2s;
+}
+.pet-dock-chip { width: 34px; height: 34px; border-radius: 50%; padding: 0; }
+.pet-dock-chip .pet-chip-emoji { font-size: 17px; }
+.pet-dock-chip:hover { border-color: var(--primary); background: rgba(0, 243, 255, 0.08); }
+.pet-dock-chip.active { border-color: var(--primary); background: rgba(0, 243, 255, 0.14); box-shadow: 0 0 10px var(--primary-glow); }
+.pet-dock-toggle { width: 30px; height: 30px; border-radius: 50%; padding: 0; font-size: 13px; }
+.pet-dock-toggle:hover { border-color: var(--primary); color: var(--primary); }
+.pet-dock-recall { height: 34px; border-radius: 999px; padding: 0 14px; font-size: 12px; font-weight: 600; color: var(--primary); border-color: var(--primary); }
+.pet-dock-recall:hover { background: rgba(0, 243, 255, 0.1); box-shadow: 0 0 12px var(--primary-glow); }
+.pet-dock-recall .pet-chip-emoji { font-size: 16px; }
+@media (max-width: 820px) {
+  .pet-dock { right: 10px; bottom: 10px; gap: 5px; padding: 5px; }
+  .pet-dock-chip { width: 30px; height: 30px; }
+  .pet-dock-chip .pet-chip-emoji { font-size: 15px; }
+}
 
 .pet-bubble { position: absolute; top: -58px; left: 50%; transform: translateX(-50%); background: #02040a; border: 1px solid var(--primary);
   padding: 8px 14px; border-radius: 4px; font-size: 11px; color: #fff; opacity: 0; transition: opacity 0.3s; white-space: nowrap; pointer-events: none; box-shadow: 0 0 15px var(--primary-glow); }

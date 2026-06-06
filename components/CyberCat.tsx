@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 import { useStore } from "@/lib/store";
 import { petDialogue, pandaNag, wolfDeadlineHowl, CAT_HUNGRY, CAT_LONELY } from "@/lib/content";
-import { PETS } from "@/lib/pets";
+import { PETS, petMeta } from "@/lib/pets";
 import { CORE_TASK_TTL } from "@/lib/settle";
 import type { AppState, PetType } from "@/lib/state";
 
-type CatState = "idle" | "walking" | "laying" | "dragging" | "belly" | "eating";
+type CatState = "idle" | "walking" | "laying" | "dragging" | "belly" | "eating" | "jumping";
 
 // 各物种专属彩带配色：龙=赤焰、狼=钢蓝、熊猫=黑白灰、量子猫=青绿
 const CHEER_COLORS: Record<PetType, string[]> = {
@@ -110,13 +110,19 @@ function PetBody({ type }: { type: PetType }) {
   }
 }
 
-export default function CyberCat() {
+// 当前栖息地面线（贴地基准 y）。运动引擎与拖拽松手都以此为基准。
+function groundY() {
+  return window.innerHeight - 110;
+}
+
+// 宠物本体 + 运动/拖拽/独白引擎。仅在未隐藏时挂载，
+// 卸载即自动清理所有 interval / raf / 事件监听，隐藏时不空跑定时器。
+function PetEntity() {
   const data = useStore((s) => s.data);
   const catSignal = useStore((s) => s.catSignal);
   const strokePet = useStore((s) => s.strokePet);
   const feedPet = useStore((s) => s.feedPet);
   const cheerMe = useStore((s) => s.cheerMe);
-  const setPetType = useStore((s) => s.setPetType);
 
   const petType: PetType = data?.petType ?? "quantum-cat";
   const petName = data?.petName ?? "AI-CAT-01";
@@ -133,8 +139,9 @@ export default function CyberCat() {
   const [hubOpen, setHubOpen] = useState(false);
   const [hubPos, setHubPos] = useState({ x: 0, y: 0 });
 
-  // 用 ref 持有物理量，避免频繁 re-render
-  const phys = useRef({ x: 340, y: 0, targetX: 340, speed: 1.4, state: "idle" as CatState, hubOpen: false, dragging: false });
+  // 用 ref 持有物理量，避免频繁 re-render。
+  // baseY = 当前栖息 y（拖拽松手后更新为放置处），运动引擎以它为基准，不再每帧强制回贴地线。
+  const phys = useRef({ x: 340, y: 0, baseY: 0, targetX: 340, speed: 1.4, state: "idle" as CatState, hubOpen: false, dragging: false });
   const bubbleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 保持最新的喂养/饥饿数据给定时器读取（含当前出战物种与完整状态用于签名反应）
@@ -158,29 +165,61 @@ export default function CyberCat() {
     const el = catRef.current;
     if (!el) return;
     const p = phys.current;
-    p.y = window.innerHeight - 110;
+    p.baseY = groundY();
+    p.y = p.baseY;
     el.style.left = p.x + "px";
     el.style.top = p.y + "px";
 
-    // 随机漫步 / 躺卧
+    // 窗口尺寸变化时夹取，防止宠物跑出视口
+    function onResize() {
+      const maxX = window.innerWidth - 90;
+      const maxY = window.innerHeight - 90;
+      p.baseY = Math.min(p.baseY, maxY);
+      p.x = Math.max(0, Math.min(maxX, p.x));
+      p.targetX = Math.max(0, Math.min(maxX, p.targetX));
+      if (p.state !== "walking" && p.state !== "jumping") p.y = p.baseY;
+      el!.style.left = p.x + "px";
+      el!.style.top = p.y + "px";
+    }
+    window.addEventListener("resize", onResize);
+
+    // 轻跳跃落地定时器：单独持有引用，卸载时清理，避免隐藏后回调在已卸载组件上 setState
+    let jumpTimer: ReturnType<typeof setTimeout> | null = null;
+
+    // 随机漫步 / 躺卧 / 轻跳跃（以当前 x 为中心小范围移动，不再横穿整屏）
     const wander = setInterval(() => {
-      if (p.dragging || p.hubOpen || p.state === "eating" || p.state === "belly") return;
+      if (p.dragging || p.hubOpen || p.state === "eating" || p.state === "belly" || p.state === "jumping") return;
       if (liveRef.current.petFood < 20 && Math.random() > 0.2) {
         setCat("laying");
         return;
       }
-      if (Math.random() > 0.6) {
-        const maxW = window.innerWidth - 120;
-        p.targetX = Math.floor(Math.random() * Math.max(1, maxW - 350)) + 350;
+      const roll = Math.random();
+      if (roll < 0.18) {
+        // 低频不定时轻跳跃：原地短促上下弹跳（带极小水平位移），跳完回 idle
+        const maxX = window.innerWidth - 90;
+        p.x = Math.max(0, Math.min(maxX, p.x + (Math.random() * 24 - 12)));
+        p.targetX = p.x;
+        el!.style.left = p.x + "px";
+        setCat("jumping");
+        if (jumpTimer) clearTimeout(jumpTimer);
+        jumpTimer = setTimeout(() => {
+          if (!p.dragging && p.state === "jumping") setCat("idle");
+        }, 560);
+      } else if (roll < 0.58) {
+        // 小范围游走：以当前 x 为中心 ±40~80px 随机选点
+        const span = 40 + Math.random() * 40;
+        const dir = Math.random() < 0.5 ? -1 : 1;
+        const maxX = window.innerWidth - 90;
+        p.targetX = Math.max(0, Math.min(maxX, p.x + dir * span));
         setCat("walking");
-      } else if (Math.random() > 0.7) {
+      } else if (roll < 0.72) {
         setCat("laying");
       } else {
         setCat("idle");
       }
     }, 5000);
 
-    // 行走帧
+    // 行走帧：水平向 targetX 步进，y 始终锁定到 baseY（贴当前栖息线）
     let raf = 0;
     function frame() {
       if (p.state === "walking" && !p.hubOpen && !p.dragging) {
@@ -190,7 +229,7 @@ export default function CyberCat() {
           p.x = p.targetX;
           setCat("idle");
         }
-        p.y = window.innerHeight - 110;
+        p.y = p.baseY;
         if (el) {
           el.style.left = p.x + "px";
           el.style.top = p.y + "px";
@@ -227,6 +266,9 @@ export default function CyberCat() {
       clearInterval(wander);
       clearInterval(mind);
       cancelAnimationFrame(raf);
+      if (jumpTimer) clearTimeout(jumpTimer);
+      if (bubbleTimer.current) clearTimeout(bubbleTimer.current);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
@@ -266,10 +308,12 @@ export default function CyberCat() {
       el!.classList.remove("dragging");
       el!.querySelector(".pet-mesh")?.classList.remove("floating");
       setCat("idle");
+      // 松手后停在放置处：x/y 都保留，并把当前 y 记为新的栖息基准
       p.targetX = p.x;
-      p.y = window.innerHeight - 110;
+      p.baseY = p.y;
+      el!.style.left = p.x + "px";
       el!.style.top = p.y + "px";
-      say("安全着陆，重力总线重锁成功。");
+      say("已在此处重新锚定坐标。");
     }
 
     el.addEventListener("mousedown", onDown);
@@ -384,22 +428,6 @@ export default function CyberCat() {
               <b style={{ color: "var(--green)" }}>{petFood}%</b>
             </div>
           </div>
-          <div className="pet-switcher">
-            <div className="pet-switcher-title">切换出战实体</div>
-            <div className="pet-switcher-grid">
-              {PETS.map((p) => (
-                <button
-                  key={p.type}
-                  className={`pet-chip ${p.type === petType ? "active" : ""}`}
-                  title={p.blurb}
-                  onClick={(e) => { e.stopPropagation(); setPetType(p.type); }}
-                >
-                  <span className="pet-chip-emoji">{p.emoji}</span>
-                  <span className="pet-chip-name">{p.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
           <div className="input-fields" style={{ gap: 10 }}>
             <button className="btn-prime" onClick={(e) => { e.stopPropagation(); strokePet(); }}>
               🤚 抚摸（露肚皮 · 消耗2积分）
@@ -414,6 +442,63 @@ export default function CyberCat() {
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+// 常驻快捷切换坞：固定右下角，不必点开枢纽即可切换出战实体 / 隐藏召回。
+// 半透明小尺寸低干扰；隐藏状态下收起 chip 仅留召回按钮。
+function PetDock() {
+  const petType: PetType = useStore((s) => s.data?.petType ?? "quantum-cat");
+  const petHidden = useStore((s) => s.data?.petHidden ?? false);
+  const setPetType = useStore((s) => s.setPetType);
+  const togglePetVisibility = useStore((s) => s.togglePetVisibility);
+
+  return (
+    <div className="pet-dock">
+      {petHidden ? (
+        <button
+          className="pet-dock-recall"
+          title="召回宠物"
+          onClick={() => togglePetVisibility()}
+        >
+          <span className="pet-chip-emoji">{petMeta(petType).emoji}</span>
+          <span>召回宠物</span>
+        </button>
+      ) : (
+        <>
+          {PETS.map((p) => (
+            <button
+              key={p.type}
+              className={`pet-dock-chip ${p.type === petType ? "active" : ""}`}
+              title={`${p.label} · ${p.blurb}`}
+              onClick={() => setPetType(p.type)}
+            >
+              <span className="pet-chip-emoji">{p.emoji}</span>
+            </button>
+          ))}
+          <button
+            className="pet-dock-toggle"
+            title="隐藏宠物"
+            onClick={() => togglePetVisibility()}
+          >
+            <i className="fa-solid fa-eye-slash" />
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default function CyberCat() {
+  const petHidden = useStore((s) => s.data?.petHidden ?? false);
+  const loaded = useStore((s) => s.data !== null);
+  if (!loaded) return null;
+  return (
+    <>
+      {/* 隐藏时不挂载本体：运动引擎随之卸载，定时器/raf 全部清理，无空跑 */}
+      {!petHidden && <PetEntity />}
+      <PetDock />
     </>
   );
 }

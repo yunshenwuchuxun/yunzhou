@@ -60,6 +60,7 @@ export interface AppState {
   systemName: string; // 系统名（侧边栏可改）
   petName: string;
   petType: PetType; // 出战宠物物种
+  petHidden: boolean; // 宠物是否隐藏（仅留召回入口）
   // 资源
   currency: number;
   // 属性：所有固定最小单位（智慧学科 + 魅力/气质/体质）
@@ -100,6 +101,7 @@ export function createDefaultState(now: Date = new Date()): AppState {
     systemName: "Goddess Core",
     petName: "AI-CAT-01",
     petType: "quantum-cat",
+    petHidden: false,
     currency: 50,
     attrs,
     talents: [],
@@ -151,6 +153,8 @@ export function migrateState(raw: unknown): AppState {
   // 旧存档无 petType，补默认；非法值回落到量子猫
   const validPetTypes: PetType[] = ["quantum-cat", "mecha-panda", "flame-dragon", "cyber-wolf"];
   if (!validPetTypes.includes(merged.petType)) merged.petType = "quantum-cat";
+  // 旧存档无 petHidden，缺则默认显示
+  merged.petHidden = r.petHidden === true;
   // 限幅所有属性
   for (const k of Object.keys(merged.attrs)) {
     merged.attrs[k] = Math.max(0, Math.min(MAX_POINT, merged.attrs[k] || 0));

@@ -132,6 +132,7 @@ interface Store {
   renameSystem: (name: string) => void;
   renamePet: (name: string) => void;
   setPetType: (t: PetType) => void;
+  togglePetVisibility: () => void;
   setGender: (gender: string) => void;
   grindSkill: (key: string) => void;
   addTalent: (name: string) => void;
@@ -224,6 +225,9 @@ export const useStore = create<Store>((set, get) => ({
   }),
   setPetType: (t) => get().apply((d) => {
     d.petType = t;
+  }),
+  togglePetVisibility: () => get().apply((d) => {
+    d.petHidden = !d.petHidden;
   }),
   setGender: (gender) => get().apply((d) => {
     d.gender = gender;
