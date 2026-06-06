@@ -275,3 +275,9 @@ body {
 :root[data-theme="light"] .bag-strip { background: rgba(0, 0, 0, 0.03); border-color: rgba(0, 0, 0, 0.08); }
 :root[data-theme="light"] .progress-track { background: rgba(0, 0, 0, 0.08); border-color: rgba(0, 0, 0, 0.06); }
 :root[data-theme="light"] .config-avatar { background: rgba(0, 0, 0, 0.04); }
+/* 浅色下量子猫及其周边（保留青色描边/发光，仅换深色填充） */
+:root[data-theme="light"] .cat-torso,
+:root[data-theme="light"] .cat-head { background: #e3edf5; }
+:root[data-theme="light"] .pet-bubble { background: rgba(255, 255, 255, 0.95); color: var(--text-main); }
+:root[data-theme="light"] .pet-hub { background: rgba(255, 255, 255, 0.92); box-shadow: 0 15px 45px rgba(0, 80, 110, 0.18); }
+:root[data-theme="light"] .cat-bowl { background: #d6deea; }
