@@ -21,7 +21,7 @@ import {
   fortuneForDate,
   CAT_FED,
   CAT_STROKED,
-  CAT_ENCOURAGEMENTS,
+  petEncouragement,
   CAT_MILESTONE,
   CAT_COMBO_UNLOCK,
 } from "./content";
@@ -63,8 +63,9 @@ function mathCombo(d: AppState): boolean {
 const ENCOURAGE_MARKS = [25, 50, 75, 100];
 const GRIND_CHEER_RATE = 0.25; // 刷点节流：仅约 1/4 概率触发，避免刷屏
 
-function pickEncouragement(): string {
-  return CAT_ENCOURAGEMENTS[Math.floor(Math.random() * CAT_ENCOURAGEMENTS.length)];
+// 按当前出战宠物从其专属池取鼓励语
+function pickEncouragement(petType: PetType): string {
+  return petEncouragement(petType);
 }
 // 数值是否跨越某个里程碑阈值；未跨越返回 null
 function crossedMark(before: number, after: number): number | null {
@@ -76,6 +77,7 @@ function crossedMark(before: number, after: number): number | null {
 // 刷点/精进后的鼓励：跨越里程碑必给加强彩带，否则按概率节流给普通彩带
 function cheerForGrind(
   signal: (s: Omit<CatSignal, "ts">) => void,
+  petType: PetType,
   before: number,
   after: number,
 ) {
@@ -83,7 +85,7 @@ function cheerForGrind(
   if (mark != null) {
     signal({ type: "cheer", text: CAT_MILESTONE(mark), big: true });
   } else if (Math.random() < GRIND_CHEER_RATE) {
-    signal({ type: "cheer", text: pickEncouragement() });
+    signal({ type: "cheer", text: pickEncouragement(petType) });
   }
 }
 
@@ -204,8 +206,8 @@ export const useStore = create<Store>((set, get) => ({
 
   signalCat: (s) => set({ catSignal: { ...s, ts: Date.now() } }),
   pushToast: (text) => set({ toast: { text, ts: Date.now() } }),
-  // 主动求鼓励：每次都给加强版彩带
-  cheerMe: () => get().signalCat({ type: "cheer", text: pickEncouragement(), big: true }),
+  // 主动求鼓励：每次都给加强版彩带（按当前出战宠物取专属文案）
+  cheerMe: () => get().signalCat({ type: "cheer", text: pickEncouragement(get().data?.petType ?? "quantum-cat"), big: true }),
 
   bind: (name, age) => get().apply((d) => {
     d.hostName = name;
@@ -240,7 +242,7 @@ export const useStore = create<Store>((set, get) => ({
       d.todayDoneLogs.push(`🧠 [刷技能点] ${key} +${SKILL_GRIND_STEP}`);
     });
     playSound("success");
-    cheerForGrind(get().signalCat, before, get().data?.attrs[key] ?? 0);
+    cheerForGrind(get().signalCat, get().data?.petType ?? "quantum-cat", before, get().data?.attrs[key] ?? 0);
   },
 
   addTalent: (name) => get().apply((d) => {
@@ -256,7 +258,7 @@ export const useStore = create<Store>((set, get) => ({
       const t = d.talents.find((x) => x.id === id);
       if (t) d.todayDoneLogs.push(`🎨 [才艺精进] ${t.name} +${SKILL_GRIND_STEP}`);
     });
-    cheerForGrind(get().signalCat, before, get().data?.talents.find((x) => x.id === id)?.points ?? 0);
+    cheerForGrind(get().signalCat, get().data?.petType ?? "quantum-cat", before, get().data?.talents.find((x) => x.id === id)?.points ?? 0);
   },
 
   toggleDaily: (id) => {
@@ -279,7 +281,7 @@ export const useStore = create<Store>((set, get) => ({
     });
     // 仅在「由未完成→完成」时鼓励，每次都给普通彩带
     if (!wasDone && get().data?.dailyTasks.find((x) => x.id === id)?.done) {
-      get().signalCat({ type: "cheer", text: pickEncouragement() });
+      get().signalCat({ type: "cheer", text: pickEncouragement(get().data?.petType ?? "quantum-cat") });
     }
   },
   addCustomDaily: (name, attrKey, penalty) => get().apply((d) => {
@@ -320,7 +322,7 @@ export const useStore = create<Store>((set, get) => ({
     if (next && !comboBefore && mathCombo(next)) {
       get().signalCat({ type: "cheer", text: CAT_COMBO_UNLOCK, big: true });
     } else {
-      get().signalCat({ type: "cheer", text: pickEncouragement() });
+      get().signalCat({ type: "cheer", text: pickEncouragement(next?.petType ?? "quantum-cat") });
     }
   },
   removeCoreTask: (id) => get().apply((d) => {

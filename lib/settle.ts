@@ -9,7 +9,8 @@ import {
 } from "./model";
 import { dateStr, dayDiff, clamp } from "./util";
 
-const CORE_TASK_TTL = 48 * 60 * 60 * 1000;
+// 核心任务存活时长（48h），导出供宠物催战提醒等复用，避免硬编码。
+export const CORE_TASK_TTL = 48 * 60 * 60 * 1000;
 
 function addAttr(s: AppState, key: string, delta: number) {
   if (s.attrs[key] === undefined) return;

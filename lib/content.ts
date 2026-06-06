@@ -1,6 +1,7 @@
-// 系统文案：猫咪语录（贴合考研自我提升）、每日运势、系统公告模板。
+// 系统文案：宠物语录（按物种性格分池）、每日运势、系统公告模板。
+import type { PetType } from "./state";
 
-// 猫咪日常独白（系统语录，已按考研养成规划改写）
+// 量子猫日常独白（温柔陪伴，保留原始体验）
 export const CAT_DIALOGUES = [
   "宿主，今日的认知熵在下降，继续保持深度专注。",
   "数据流告诉我，你比昨天更接近上岸的坐标了喵。",
@@ -13,7 +14,7 @@ export const CAT_DIALOGUES = [
   "宿主专注的样子，是这个系统里最高能的信号。",
 ];
 
-// 鼓励加油语料池（完成任务 / 刷技能点等行为即时正反馈）
+// 量子猫鼓励语（温柔即时正反馈，保留原始体验）
 export const CAT_ENCOURAGEMENTS = [
   "干得漂亮喵！这一下又把上岸的概率推高了一点。",
   "看到了看到了，宿主的专注度正在拉满！继续冲！",
@@ -24,6 +25,126 @@ export const CAT_ENCOURAGEMENTS = [
   "别小看这一点点，复利之下都是质变，加油！",
   "能量同步中…检测到宿主斗志上扬，给你鼓掌喵！",
 ];
+
+// 机甲熊猫日常独白（稳重憨厚，慢条斯理）
+const PANDA_DIALOGUES = [
+  "嚼着竹子也能镇场，宿主你慢慢来，我顶着。",
+  "稳一点，地基打牢的人走得最远。",
+  "别急，今天的功课吃透一口算一口。",
+  "我这身机甲不是吓人的，是替你扛住焦虑的。",
+  "圆滚滚地坐镇，宿主只管专注，杂念交给我。",
+  "笨办法不丢人，重复一千次就是真功夫。",
+  "稳住节奏，憨人有憨福，努力不会白费。",
+];
+
+// 机甲熊猫鼓励语（稳重踏实）
+const PANDA_ENCOURAGEMENTS = [
+  "稳，这一步踏得扎实，地基又厚了一寸。",
+  "不慌不忙，宿主这力道刚刚好，继续。",
+  "嗯，记下了，又是一块垒上去的砖。",
+  "笨功夫见真章，宿主你做得很稳。",
+  "镇场成功，杂念退散，进度照常推进。",
+  "圆滚滚为你点个赞，踏实最香。",
+];
+
+// 机甲熊猫镇场督促语（每日必做有遗留时偶发）
+const PANDA_NAG = [
+  "还有必做没清呢，别躺着，先把它啃了。",
+  "镇场提醒：今天的任务清单还没扫干净哦。",
+  "我盯着进度条呢，落下的那几项，补上吧。",
+  "稳归稳，该做的还是得做，去把必做收尾。",
+];
+
+// 赤焰小龙日常独白（战意昂扬，热血）
+const DRAGON_DIALOGUES = [
+  "战意已点燃，宿主，今天我们烧穿哪块硬骨头？",
+  "焰心在烧，每一分专注都是助燃剂！",
+  "弱者退场，强者赴战——宿主，拔剑吧！",
+  "胸腔里的火越攒越旺，破壁就在眼前！",
+  "别守了，进攻！把最难的科目当祭品。",
+  "龙焰认你为主，宿主越战越勇，我陪你燃到底！",
+  "今日不留余力，全力以赴方不负这身火。",
+];
+
+// 赤焰小龙鼓励语（战意/喷火，越战越勇）
+const DRAGON_ENCOURAGEMENTS = [
+  "好！这一击势如喷焰，再来！越战越勇！",
+  "焰心暴涨——宿主的战意我接收到了，冲！",
+  "干得漂亮！把这股火势保持住，碾碎它！",
+  "燃起来了！这一步踏碎瓶颈，乘胜追击！",
+  "赤焰加持，宿主势不可挡，继续燃！",
+  "嗷——又破一关！强者之路，全力进攻！",
+];
+
+// 机械狼日常独白（冷酷凌厉，简洁狠辣）
+const WOLF_DIALOGUES = [
+  "锁定目标。专注，是猎手唯一的姿态。",
+  "无声潜行，宿主，把猎物逐个清算。",
+  "不喧哗，不松懈。强者只用结果说话。",
+  "钢铁的眼里只有下一个目标。",
+  "情绪是噪音，效率是利刃——保持冷静。",
+  "狩猎开始。慢即是死，动起来。",
+  "锁定即达成，宿主，别让目标喘息。",
+];
+
+// 机械狼鼓励语（冷酷凌厉，干净利落）
+const WOLF_ENCOURAGEMENTS = [
+  "命中。目标清除，锁定下一个。",
+  "干净利落。这就是猎手的节奏。",
+  "效率达标，宿主，继续推进。",
+  "一击致命，毫不拖泥带水。漂亮。",
+  "战果确认。保持冷静，扩大战线。",
+  "锁定—达成。下一个目标，出发。",
+];
+
+// 机械狼临近死线催战语（核心任务将超时时偶发）
+const WOLF_DEADLINE = [
+  "嗷呜——猎物在逃，契约倒计时拉响，立刻出击！",
+  "警告：目标将在数小时内脱锁，宿主，动手。",
+  "死线逼近，狩猎窗口正在关闭——别让它溜了。",
+  "嚎叫示警：有契约即将超时，现在就去终结它。",
+];
+
+// 各物种独白池（量子猫复用 CAT_DIALOGUES，保持原体验）
+export const PET_DIALOGUES: Record<PetType, string[]> = {
+  "quantum-cat": CAT_DIALOGUES,
+  "mecha-panda": PANDA_DIALOGUES,
+  "flame-dragon": DRAGON_DIALOGUES,
+  "cyber-wolf": WOLF_DIALOGUES,
+};
+
+// 各物种鼓励池（量子猫复用 CAT_ENCOURAGEMENTS，保持原体验）
+export const PET_ENCOURAGEMENTS: Record<PetType, string[]> = {
+  "quantum-cat": CAT_ENCOURAGEMENTS,
+  "mecha-panda": PANDA_ENCOURAGEMENTS,
+  "flame-dragon": DRAGON_ENCOURAGEMENTS,
+  "cyber-wolf": WOLF_ENCOURAGEMENTS,
+};
+
+// 从指定物种的池中随机取一条
+function pickFrom(pool: string[]): string {
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// 按物种取一条日常独白
+export function petDialogue(type: PetType): string {
+  return pickFrom(PET_DIALOGUES[type]);
+}
+
+// 按物种取一条鼓励语
+export function petEncouragement(type: PetType): string {
+  return pickFrom(PET_ENCOURAGEMENTS[type]);
+}
+
+// 机甲熊猫镇场督促语（每日必做有遗留时用）
+export function pandaNag(): string {
+  return pickFrom(PANDA_NAG);
+}
+
+// 机械狼临近死线催战语
+export function wolfDeadlineHowl(): string {
+  return pickFrom(WOLF_DEADLINE);
+}
 
 // 里程碑达成文案（属性跨越关键阈值 / 数学连携解锁）
 export const CAT_MILESTONE = (mark: number) =>

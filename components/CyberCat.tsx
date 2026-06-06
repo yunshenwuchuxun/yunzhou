@@ -2,11 +2,37 @@
 import { useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 import { useStore } from "@/lib/store";
-import { CAT_DIALOGUES, CAT_HUNGRY, CAT_LONELY } from "@/lib/content";
+import { petDialogue, pandaNag, wolfDeadlineHowl, CAT_HUNGRY, CAT_LONELY } from "@/lib/content";
 import { PETS } from "@/lib/pets";
-import type { PetType } from "@/lib/state";
+import { CORE_TASK_TTL } from "@/lib/settle";
+import type { AppState, PetType } from "@/lib/state";
 
 type CatState = "idle" | "walking" | "laying" | "dragging" | "belly" | "eating";
+
+// 各物种专属彩带配色：龙=赤焰、狼=钢蓝、熊猫=黑白灰、量子猫=青绿
+const CHEER_COLORS: Record<PetType, string[]> = {
+  "quantum-cat": ["#00d4ff", "#39ff14", "#7af9ff"],
+  "mecha-panda": ["#ffffff", "#1a1a1a", "#9aa0a6"],
+  "flame-dragon": ["#ff3b1d", "#ff8a00", "#ffd000"],
+  "cyber-wolf": ["#2f80ff", "#c0c8d4", "#00e0ff"],
+};
+
+// 狼系催战阈值：核心任务距 48h 死线不足 6h 即视为临近
+const WOLF_HOWL_LEAD = 6 * 60 * 60 * 1000;
+
+// 是否存在「未完成且临近死线」的核心任务（只读，不改数据）
+function hasUrgentCoreTask(data: AppState, now: number): boolean {
+  return data.coreTasks.some((t) => {
+    if (t.completed || t.isOverdue) return false;
+    const remaining = t.createdTs + CORE_TASK_TTL - now;
+    return remaining > 0 && remaining < WOLF_HOWL_LEAD;
+  });
+}
+
+// 是否还有未完成的每日必做（熊猫镇场督促条件）
+function hasPendingDaily(data: AppState): boolean {
+  return data.dailyTasks.some((t) => !t.done);
+}
 
 // 各物种的视觉子结构。共享外层 .pet-mesh.<type> 与共享状态类（idle/walking/...），
 // 仅此处的内部 DOM 与对应 CSS 命名空间不同，运动/交互引擎完全复用。
@@ -111,9 +137,9 @@ export default function CyberCat() {
   const phys = useRef({ x: 340, y: 0, targetX: 340, speed: 1.4, state: "idle" as CatState, hubOpen: false, dragging: false });
   const bubbleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 保持最新的喂养/饥饿数据给定时器读取
-  const liveRef = useRef({ petFood, petLove, petName, hostName });
-  liveRef.current = { petFood, petLove, petName, hostName };
+  // 保持最新的喂养/饥饿数据给定时器读取（含当前出战物种与完整状态用于签名反应）
+  const liveRef = useRef({ petFood, petLove, petName, hostName, petType, data });
+  liveRef.current = { petFood, petLove, petName, hostName, petType, data };
 
   function say(text: string) {
     setBubble(text);
@@ -177,10 +203,24 @@ export default function CyberCat() {
     // 自主独白
     const mind = setInterval(() => {
       if (p.dragging) return;
-      const { petFood, petLove, petName, hostName } = liveRef.current;
-      if (petFood < 25) say(CAT_HUNGRY(petName));
-      else if (petLove < 30) say(CAT_LONELY(hostName));
-      else say(CAT_DIALOGUES[Math.floor(Math.random() * CAT_DIALOGUES.length)]);
+      const { petFood, petLove, petName, hostName, petType, data } = liveRef.current;
+      if (petFood < 25) { say(CAT_HUNGRY(petName)); return; }
+      if (petLove < 30) { say(CAT_LONELY(hostName)); return; }
+      // 物种签名反应（低频、条件满足时择一插入，不喧宾夺主）
+      if (data) {
+        // 机械狼：核心契约临近死线时嚎叫催战（约 60% 概率，避免每 tick 刷屏）
+        if (petType === "cyber-wolf" && hasUrgentCoreTask(data, Date.now()) && Math.random() < 0.6) {
+          say(wolfDeadlineHowl());
+          return;
+        }
+        // 机甲熊猫：每日必做有遗留时镇场督促（约 45% 概率）
+        if (petType === "mecha-panda" && hasPendingDaily(data) && Math.random() < 0.45) {
+          say(pandaNag());
+          return;
+        }
+      }
+      // 默认：按当前出战物种从其专属独白池取一条
+      say(petDialogue(petType));
     }, 12000);
 
     return () => {
@@ -268,11 +308,12 @@ export default function CyberCat() {
       setCat("belly");
       setHeartKey((k) => k + 1);
       const ox = phys.current.x / window.innerWidth;
+      const colors = CHEER_COLORS[petType];
       if (catSignal.big) {
-        // 加强版：多段彩带（里程碑 / 主动求鼓励）
-        confetti({ particleCount: 80, spread: 75, startVelocity: 45, origin: { x: ox, y: 0.85 } });
+        // 加强版：多段彩带（里程碑 / 主动求鼓励），按物种配色
+        confetti({ particleCount: 80, spread: 75, startVelocity: 45, colors, origin: { x: ox, y: 0.85 } });
         const burst = setTimeout(
-          () => confetti({ particleCount: 60, spread: 100, scalar: 1.1, origin: { x: ox, y: 0.7 } }),
+          () => confetti({ particleCount: 60, spread: 100, scalar: 1.1, colors, origin: { x: ox, y: 0.7 } }),
           250,
         );
         const back = setTimeout(() => setCat("idle"), 2600);
@@ -281,11 +322,11 @@ export default function CyberCat() {
           clearTimeout(back);
         };
       }
-      confetti({ particleCount: 42, spread: 60, origin: { x: ox, y: 0.85 } });
+      confetti({ particleCount: 42, spread: 60, colors, origin: { x: ox, y: 0.85 } });
       const back = setTimeout(() => setCat("idle"), 2000);
       return () => clearTimeout(back);
     }
-  }, [catSignal]);
+  }, [catSignal, petType]);
 
   // 饥饿时显示不开心表情（非进食/抚摸态）
   const hungry = petFood < 20 && stateClass !== "eating" && stateClass !== "belly";
