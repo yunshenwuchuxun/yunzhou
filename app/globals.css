@@ -206,42 +206,89 @@ body {
   box-shadow: 0 0 25px var(--primary-glow); font-size: 13px; max-width: 80vw; animation: toastIn 0.3s ease; }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -12px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-/* ===== 量子猫 ===== */
+/* ===== 桌面宠物（多物种共享骨架） ===== */
+/* 共享：容器、躯干/头/腿/尾的几何位置与所有状态动画都挂在 .pet-mesh 上，
+   各物种仅通过 .pet-mesh.<type> 覆盖配色/局部造型与额外贴片。 */
 #cyber-pet { position: fixed; z-index: 99999; width: 85px; height: 90px; cursor: grab; user-select: none; }
 #cyber-pet.dragging { cursor: grabbing; }
-.cat-mesh { width: 100%; height: 100%; position: relative; transition: transform 0.3s ease; }
+.pet-mesh { width: 100%; height: 100%; position: relative; transition: transform 0.3s ease; }
 .cat-torso { position: absolute; bottom: 16px; left: 16px; width: 48px; height: 28px; background: #090e26; border: 2px solid var(--primary); border-radius: 14px; box-shadow: 0 0 15px var(--primary-glow); }
 .cat-head { position: absolute; top: -16px; right: -12px; width: 26px; height: 26px; background: #090e26; border: 2px solid var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center; }
-.cat-head::before, .cat-head::after { content: ""; position: absolute; top: -6px; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid var(--primary); }
-.cat-head::before { left: 1px; transform: rotate(-12deg); }
-.cat-head::after { right: 1px; transform: rotate(12deg); }
 .cat-eyes { width: 14px; height: 4px; display: flex; justify-content: space-between; }
 .cat-eyes::before, .cat-eyes::after { content: ""; width: 4px; height: 4px; background: var(--green); border-radius: 50%; box-shadow: 0 0 6px var(--green); }
 .cat-leg { position: absolute; bottom: -11px; width: 5px; height: 13px; background: var(--primary); border-radius: 2px; transform-origin: top center; }
 .leg-fr { left: 10px; } .leg-fl { left: 18px; } .leg-br { right: 10px; } .leg-bl { right: 18px; }
 .cat-tail { position: absolute; top: 5px; left: -11px; width: 16px; height: 5px; background: var(--primary); border-radius: 3px; transform-origin: right center; animation: tailShake 1.4s infinite ease-in-out; box-shadow: 0 0 10px var(--primary-glow); }
 @keyframes tailShake { 0%, 100% { transform: rotate(20deg); } 50% { transform: rotate(-20deg); } }
-.cat-mesh.walking .leg-fr { animation: legSwing 0.2s infinite alternate linear; }
-.cat-mesh.walking .leg-fl { animation: legSwing 0.2s infinite alternate linear 0.1s; }
-.cat-mesh.walking .leg-br { animation: legSwing 0.2s infinite alternate linear 0.05s; }
-.cat-mesh.walking .leg-bl { animation: legSwing 0.2s infinite alternate linear 0.15s; }
+.pet-mesh.walking .leg-fr { animation: legSwing 0.2s infinite alternate linear; }
+.pet-mesh.walking .leg-fl { animation: legSwing 0.2s infinite alternate linear 0.1s; }
+.pet-mesh.walking .leg-br { animation: legSwing 0.2s infinite alternate linear 0.05s; }
+.pet-mesh.walking .leg-bl { animation: legSwing 0.2s infinite alternate linear 0.15s; }
 @keyframes legSwing { 0% { transform: rotate(40deg); } 100% { transform: rotate(-40deg); } }
 /* 趴下 */
-.cat-mesh.laying { transform: translateY(8px) rotate(-82deg); }
-.cat-mesh.laying .cat-leg { height: 4px; transform: rotate(0deg); }
-.cat-mesh.laying .cat-eyes::before, .cat-mesh.laying .cat-eyes::after { background: var(--text-muted); box-shadow: none; }
+.pet-mesh.laying { transform: translateY(8px) rotate(-82deg); }
+.pet-mesh.laying .cat-leg { height: 4px; transform: rotate(0deg); }
+.pet-mesh.laying .cat-eyes::before, .pet-mesh.laying .cat-eyes::after { background: var(--text-muted); box-shadow: none; }
 /* 露肚皮 */
-.cat-mesh.belly { transform: translateY(10px) rotate(180deg); }
-.cat-mesh.belly .cat-leg { animation: pawWiggle 0.4s infinite alternate; }
+.pet-mesh.belly { transform: translateY(10px) rotate(180deg); }
+.pet-mesh.belly .cat-leg { animation: pawWiggle 0.4s infinite alternate; }
 @keyframes pawWiggle { 0% { transform: rotate(20deg); } 100% { transform: rotate(-20deg); } }
 /* 失重 */
-.cat-mesh.floating .cat-leg { animation: panicLeg 0.12s infinite alternate linear; }
+.pet-mesh.floating .cat-leg { animation: panicLeg 0.12s infinite alternate linear; }
 @keyframes panicLeg { 0% { transform: rotate(55deg) scaleY(1.2); } 100% { transform: rotate(-55deg) scaleY(0.8); } }
 /* 进食 */
-.cat-mesh.eating { transform: translateY(2px) rotate(8deg); animation: nibble 0.3s infinite alternate; }
+.pet-mesh.eating { transform: translateY(2px) rotate(8deg); animation: nibble 0.3s infinite alternate; }
 @keyframes nibble { 0% { transform: translateY(2px) rotate(8deg); } 100% { transform: translateY(4px) rotate(2deg); } }
 /* 不开心眼睛 */
-.cat-mesh.sad .cat-eyes::before, .cat-mesh.sad .cat-eyes::after { background: var(--red); box-shadow: 0 0 6px var(--red); width: 5px; height: 2px; border-radius: 0; }
+.pet-mesh.sad .cat-eyes::before, .pet-mesh.sad .cat-eyes::after { background: var(--red); box-shadow: 0 0 6px var(--red); width: 5px; height: 2px; border-radius: 0; }
+
+/* ---- 物种 1：量子猫（青色霓虹，尖耳） ---- */
+.pet-mesh.quantum-cat .cat-head::before, .pet-mesh.quantum-cat .cat-head::after { content: ""; position: absolute; top: -6px; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 8px solid var(--primary); }
+.pet-mesh.quantum-cat .cat-head::before { left: 1px; transform: rotate(-12deg); }
+.pet-mesh.quantum-cat .cat-head::after { right: 1px; transform: rotate(12deg); }
+
+/* ---- 物种 2：机甲熊猫（黑白圆滚团子 + 发光护甲） ---- */
+.pet-mesh.mecha-panda .cat-torso { background: #f4f6ff; border-color: #d7def2; border-radius: 18px; width: 52px; height: 30px; left: 14px; box-shadow: 0 0 14px rgba(220,230,255,0.5); }
+.pet-mesh.mecha-panda .cat-head { background: #f4f6ff; border-color: #d7def2; width: 28px; height: 28px; box-shadow: 0 0 10px rgba(220,230,255,0.4); }
+.pet-mesh.mecha-panda .cat-eyes::before, .pet-mesh.mecha-panda .cat-eyes::after { background: #0b0f1c; box-shadow: 0 0 4px rgba(0,0,0,0.6); width: 5px; height: 5px; }
+.pet-mesh.mecha-panda .cat-tail { background: #0b0f1c; box-shadow: none; }
+.pet-mesh.mecha-panda .cat-leg { background: #0b0f1c; }
+.panda-ear { position: absolute; top: -7px; width: 9px; height: 9px; background: #0b0f1c; border-radius: 50%; }
+.panda-ear-l { left: -2px; } .panda-ear-r { right: -2px; }
+.panda-armor { position: absolute; bottom: 4px; left: 6px; width: 16px; height: 12px; background: linear-gradient(135deg, var(--primary), #2b6bff); border-radius: 3px; box-shadow: 0 0 10px var(--primary-glow); }
+
+/* ---- 物种 3：赤焰小龙（火焰渐变 + 龙角 + 喷火流光） ---- */
+.pet-mesh.flame-dragon .cat-torso { background: linear-gradient(160deg, #2a0a00, #5a1500); border-color: #ff7a18; border-radius: 16px 16px 14px 22px; box-shadow: 0 0 16px rgba(255,90,20,0.55); }
+.pet-mesh.flame-dragon .cat-head { background: #3a0d00; border-color: #ff7a18; box-shadow: 0 0 12px rgba(255,120,30,0.55); }
+.pet-mesh.flame-dragon .cat-eyes::before, .pet-mesh.flame-dragon .cat-eyes::after { background: #ffd60a; box-shadow: 0 0 7px #ff7a18; }
+.pet-mesh.flame-dragon .cat-tail { width: 18px; background: linear-gradient(90deg, #ff7a18, #ffd60a); box-shadow: 0 0 12px rgba(255,120,30,0.7); border-radius: 0 4px 4px 0; }
+.pet-mesh.flame-dragon .cat-leg { background: #ff7a18; }
+.dragon-horn { position: absolute; top: -8px; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 9px solid #ffd60a; }
+.dragon-horn-l { left: 2px; transform: rotate(-18deg); } .dragon-horn-r { right: 2px; transform: rotate(18deg); }
+.dragon-flame { position: absolute; top: 6px; right: -16px; width: 14px; height: 8px; background: radial-gradient(circle at left, #ffd60a, #ff3b30 70%, transparent); border-radius: 50%; filter: blur(0.4px); animation: dragonFlame 0.5s infinite alternate; }
+@keyframes dragonFlame { 0% { opacity: 0.55; transform: scaleX(0.85); } 100% { opacity: 1; transform: scaleX(1.25); } }
+
+/* ---- 物种 4：机械狼（低多边形锐利 + 红色横向扫描眼） ---- */
+.pet-mesh.cyber-wolf .cat-torso { background: #0a0d18; border-color: #8a93ad; border-radius: 4px; clip-path: polygon(0 30%, 12% 0, 100% 12%, 100% 88%, 86% 100%, 0 70%); box-shadow: 0 0 12px rgba(255,55,95,0.35); }
+.pet-mesh.cyber-wolf .cat-head { background: #0a0d18; border-color: #8a93ad; border-radius: 3px; clip-path: polygon(0 25%, 40% 0, 100% 30%, 100% 100%, 20% 100%); }
+.pet-mesh.cyber-wolf .cat-eyes { width: 16px; }
+.pet-mesh.cyber-wolf .cat-eyes::before, .pet-mesh.cyber-wolf .cat-eyes::after { background: var(--red); box-shadow: 0 0 8px var(--red); width: 6px; height: 2px; border-radius: 0; animation: wolfScan 1.6s infinite ease-in-out; }
+@keyframes wolfScan { 0%, 100% { opacity: 1; } 45% { opacity: 0.25; } }
+.pet-mesh.cyber-wolf .cat-tail { background: #8a93ad; box-shadow: 0 0 8px rgba(138,147,173,0.5); clip-path: polygon(0 40%, 100% 0, 100% 100%); width: 18px; }
+.pet-mesh.cyber-wolf .cat-leg { background: #8a93ad; }
+.wolf-ear { position: absolute; top: -8px; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 10px solid #8a93ad; }
+.wolf-ear-l { left: 0; transform: rotate(-10deg); } .wolf-ear-r { right: 0; transform: rotate(10deg); }
+
+/* ---- 交互枢纽：宠物切换器 ---- */
+.pet-switcher { margin-bottom: 14px; }
+.pet-switcher-title { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.5px; }
+.pet-switcher-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pet-chip { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 6px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; cursor: pointer; color: #fff; font-family: inherit; transition: all 0.2s; }
+.pet-chip:hover { border-color: var(--primary); background: rgba(0,243,255,0.06); }
+.pet-chip.active { border-color: var(--primary); background: rgba(0,243,255,0.12); box-shadow: 0 0 12px var(--primary-glow); }
+.pet-chip-emoji { font-size: 20px; line-height: 1; }
+.pet-chip-name { font-size: 10px; color: var(--text-muted); text-align: center; }
+.pet-chip.active .pet-chip-name { color: var(--primary); }
 
 .pet-bubble { position: absolute; top: -58px; left: 50%; transform: translateX(-50%); background: #02040a; border: 1px solid var(--primary);
   padding: 8px 14px; border-radius: 4px; font-size: 11px; color: #fff; opacity: 0; transition: opacity 0.3s; white-space: nowrap; pointer-events: none; box-shadow: 0 0 15px var(--primary-glow); }

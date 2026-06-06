@@ -8,6 +8,9 @@ import { dateStr } from "./util";
 
 export const STATE_VERSION = 1;
 
+// 宠物物种联合类型（Phase 1 首批 4 只，全部可切换）
+export type PetType = "quantum-cat" | "mecha-panda" | "flame-dragon" | "cyber-wolf";
+
 export interface Talent {
   id: number;
   name: string;
@@ -56,6 +59,7 @@ export interface AppState {
   avatarBase64: string;
   systemName: string; // 系统名（侧边栏可改）
   petName: string;
+  petType: PetType; // 出战宠物物种
   // 资源
   currency: number;
   // 属性：所有固定最小单位（智慧学科 + 魅力/气质/体质）
@@ -95,6 +99,7 @@ export function createDefaultState(now: Date = new Date()): AppState {
     avatarBase64: "",
     systemName: "Goddess Core",
     petName: "AI-CAT-01",
+    petType: "quantum-cat",
     currency: 50,
     attrs,
     talents: [],
@@ -143,6 +148,9 @@ export function migrateState(raw: unknown): AppState {
   const existingIds = new Set((r.dailyTasks || []).map((t) => t.id));
   const builtinMissing = base.dailyTasks.filter((t) => !existingIds.has(t.id));
   merged.dailyTasks = [...(r.dailyTasks || []), ...builtinMissing];
+  // 旧存档无 petType，补默认；非法值回落到量子猫
+  const validPetTypes: PetType[] = ["quantum-cat", "mecha-panda", "flame-dragon", "cyber-wolf"];
+  if (!validPetTypes.includes(merged.petType)) merged.petType = "quantum-cat";
   // 限幅所有属性
   for (const k of Object.keys(merged.attrs)) {
     merged.attrs[k] = Math.max(0, Math.min(MAX_POINT, merged.attrs[k] || 0));

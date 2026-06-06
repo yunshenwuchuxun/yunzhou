@@ -2,7 +2,7 @@
 // 全局状态仓库（zustand）：持有整份 AppState + 所有领域 action。
 // 任何修改都会触发防抖保存到云端 /api/state；加载时先拉取并统一结算。
 import { create } from "zustand";
-import type { AppState, ShopItem } from "./state";
+import type { AppState, PetType, ShopItem } from "./state";
 import { createDefaultState, migrateState } from "./state";
 import { settleAll } from "./settle";
 import {
@@ -129,6 +129,7 @@ interface Store {
   setAvatar: (b64: string) => void;
   renameSystem: (name: string) => void;
   renamePet: (name: string) => void;
+  setPetType: (t: PetType) => void;
   setGender: (gender: string) => void;
   grindSkill: (key: string) => void;
   addTalent: (name: string) => void;
@@ -218,6 +219,9 @@ export const useStore = create<Store>((set, get) => ({
   }),
   renamePet: (name) => get().apply((d) => {
     d.petName = name;
+  }),
+  setPetType: (t) => get().apply((d) => {
+    d.petType = t;
   }),
   setGender: (gender) => get().apply((d) => {
     d.gender = gender;

@@ -3,8 +3,86 @@ import { useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
 import { useStore } from "@/lib/store";
 import { CAT_DIALOGUES, CAT_HUNGRY, CAT_LONELY } from "@/lib/content";
+import { PETS } from "@/lib/pets";
+import type { PetType } from "@/lib/state";
 
 type CatState = "idle" | "walking" | "laying" | "dragging" | "belly" | "eating";
+
+// 各物种的视觉子结构。共享外层 .pet-mesh.<type> 与共享状态类（idle/walking/...），
+// 仅此处的内部 DOM 与对应 CSS 命名空间不同，运动/交互引擎完全复用。
+function PetBody({ type }: { type: PetType }) {
+  switch (type) {
+    case "mecha-panda":
+      return (
+        <>
+          <div className="cat-tail" />
+          <div className="cat-torso">
+            <div className="panda-armor" />
+            <div className="cat-head">
+              <div className="panda-ear panda-ear-l" />
+              <div className="panda-ear panda-ear-r" />
+              <div className="cat-eyes" />
+            </div>
+          </div>
+          <div className="cat-leg leg-fr" />
+          <div className="cat-leg leg-fl" />
+          <div className="cat-leg leg-br" />
+          <div className="cat-leg leg-bl" />
+        </>
+      );
+    case "flame-dragon":
+      return (
+        <>
+          <div className="cat-tail" />
+          <div className="cat-torso">
+            <div className="dragon-flame" />
+            <div className="cat-head">
+              <div className="dragon-horn dragon-horn-l" />
+              <div className="dragon-horn dragon-horn-r" />
+              <div className="cat-eyes" />
+            </div>
+          </div>
+          <div className="cat-leg leg-fr" />
+          <div className="cat-leg leg-fl" />
+          <div className="cat-leg leg-br" />
+          <div className="cat-leg leg-bl" />
+        </>
+      );
+    case "cyber-wolf":
+      return (
+        <>
+          <div className="cat-tail" />
+          <div className="cat-torso">
+            <div className="cat-head">
+              <div className="wolf-ear wolf-ear-l" />
+              <div className="wolf-ear wolf-ear-r" />
+              <div className="cat-eyes" />
+            </div>
+          </div>
+          <div className="cat-leg leg-fr" />
+          <div className="cat-leg leg-fl" />
+          <div className="cat-leg leg-br" />
+          <div className="cat-leg leg-bl" />
+        </>
+      );
+    case "quantum-cat":
+    default:
+      return (
+        <>
+          <div className="cat-tail" />
+          <div className="cat-torso">
+            <div className="cat-head">
+              <div className="cat-eyes" />
+            </div>
+          </div>
+          <div className="cat-leg leg-fr" />
+          <div className="cat-leg leg-fl" />
+          <div className="cat-leg leg-br" />
+          <div className="cat-leg leg-bl" />
+        </>
+      );
+  }
+}
 
 export default function CyberCat() {
   const data = useStore((s) => s.data);
@@ -12,7 +90,9 @@ export default function CyberCat() {
   const strokePet = useStore((s) => s.strokePet);
   const feedPet = useStore((s) => s.feedPet);
   const cheerMe = useStore((s) => s.cheerMe);
+  const setPetType = useStore((s) => s.setPetType);
 
+  const petType: PetType = data?.petType ?? "quantum-cat";
   const petName = data?.petName ?? "AI-CAT-01";
   const petFood = data?.petFood ?? 100;
   const petLove = data?.petLove ?? 100;
@@ -125,7 +205,7 @@ export default function CyberCat() {
       p.dragging = true;
       el!.classList.add("dragging");
       setCat("idle");
-      el!.querySelector(".cat-mesh")?.classList.add("floating");
+      el!.querySelector(".pet-mesh")?.classList.add("floating");
       const r = el!.getBoundingClientRect();
       ox = e.clientX - r.left;
       oy = e.clientY - r.top;
@@ -144,7 +224,7 @@ export default function CyberCat() {
       down = false;
       p.dragging = false;
       el!.classList.remove("dragging");
-      el!.querySelector(".cat-mesh")?.classList.remove("floating");
+      el!.querySelector(".pet-mesh")?.classList.remove("floating");
       setCat("idle");
       p.targetX = p.x;
       p.y = window.innerHeight - 110;
@@ -209,7 +289,7 @@ export default function CyberCat() {
 
   // 饥饿时显示不开心表情（非进食/抚摸态）
   const hungry = petFood < 20 && stateClass !== "eating" && stateClass !== "belly";
-  const meshClass = `cat-mesh ${stateClass} ${hungry ? "sad" : ""}`;
+  const meshClass = `pet-mesh ${petType} ${stateClass} ${hungry ? "sad" : ""}`;
 
   function toggleHub(e: React.MouseEvent) {
     if (phys.current.dragging) return;
@@ -236,16 +316,7 @@ export default function CyberCat() {
         <div className={`pet-bubble ${showBubble ? "show" : ""}`}>{bubble}</div>
         {heartKey > 0 && <div className="cat-heart" key={heartKey}>💗</div>}
         <div className={meshClass}>
-          <div className="cat-tail" />
-          <div className="cat-torso">
-            <div className="cat-head">
-              <div className="cat-eyes" />
-            </div>
-          </div>
-          <div className="cat-leg leg-fr" />
-          <div className="cat-leg leg-fl" />
-          <div className="cat-leg leg-br" />
-          <div className="cat-leg leg-bl" />
+          <PetBody type={petType} />
           {showBowl && <div className="cat-bowl" />}
         </div>
       </div>
@@ -270,6 +341,22 @@ export default function CyberCat() {
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span>饱食能级:</span>
               <b style={{ color: "var(--green)" }}>{petFood}%</b>
+            </div>
+          </div>
+          <div className="pet-switcher">
+            <div className="pet-switcher-title">切换出战实体</div>
+            <div className="pet-switcher-grid">
+              {PETS.map((p) => (
+                <button
+                  key={p.type}
+                  className={`pet-chip ${p.type === petType ? "active" : ""}`}
+                  title={p.blurb}
+                  onClick={(e) => { e.stopPropagation(); setPetType(p.type); }}
+                >
+                  <span className="pet-chip-emoji">{p.emoji}</span>
+                  <span className="pet-chip-name">{p.label}</span>
+                </button>
+              ))}
             </div>
           </div>
           <div className="input-fields" style={{ gap: 10 }}>
