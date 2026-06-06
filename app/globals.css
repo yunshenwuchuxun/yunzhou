@@ -83,7 +83,7 @@ body {
 
 .main-content { height: 100vh; display: flex; flex-direction: column; padding: 28px 36px; position: relative; overflow: hidden; }
 
-.top-navbar { flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+.top-navbar { flex-shrink: 0; display: flex; justify-content: flex-end; align-items: center; gap: 16px; flex-wrap: wrap;
   background: var(--panel-bg); border: 1px solid var(--panel-border); padding: 16px 26px; border-radius: 4px; margin-bottom: 24px; backdrop-filter: blur(15px); }
 .countdown { font-size: 13px; font-weight: 500; color: var(--text-main); }
 .countdown span { color: var(--pink); font-weight: 700; text-shadow: 0 0 8px rgba(255,55,95,0.4); }
