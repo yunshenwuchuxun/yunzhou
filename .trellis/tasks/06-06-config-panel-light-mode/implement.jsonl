@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/component-guidelines.md", "reason": "新建 ConfigModal 组件，遵循面板/组件结构与样式约定"}
+{"file": ".trellis/spec/frontend/state-management.md", "reason": "新增 setGender action 与批量保存，遵循 store/helper 约定"}
+{"file": ".trellis/spec/frontend/domain-model.md", "reason": "确认身份字段含义与默认值（hostName/age/gender/systemName/petName）"}
+{"file": ".trellis/spec/frontend/directory-structure.md", "reason": "确认新组件存放位置与命名规范"}

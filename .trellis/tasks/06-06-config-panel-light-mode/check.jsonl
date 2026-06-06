@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/frontend/quality-guidelines.md", "reason": "校验禁止模式、selector 用法、@/ 别名、构建/lint 门槛"}
+{"file": ".trellis/spec/frontend/type-safety.md", "reason": "校验类型组织与禁止 any"}

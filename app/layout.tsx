@@ -17,11 +17,17 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="zh-CN" className={jetbrains.variable}>
+    <html lang="zh-CN" className={jetbrains.variable} suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+        {/* 在首屏绘制前应用主题，避免亮/暗模式闪烁（FOUC） */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{if(localStorage.getItem('theme')==='light')document.documentElement.dataset.theme='light';}catch(e){}})();`,
+          }}
         />
       </head>
       <body>{children}</body>

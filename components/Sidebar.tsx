@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { useStore } from "@/lib/store";
 import { wisdomLevel } from "@/lib/derive";
 
@@ -20,12 +20,9 @@ export default function Sidebar({
 }) {
   const data = useStore((s) => s.data)!;
   const setAvatar = useStore((s) => s.setAvatar);
-  const renameSystem = useStore((s) => s.renameSystem);
   const logout = useStore((s) => s.logout);
   const hardReset = useStore((s) => s.hardReset);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [editingName, setEditingName] = useState(false);
-  const [nameDraft, setNameDraft] = useState(data.systemName);
 
   function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -53,34 +50,7 @@ export default function Sidebar({
         <div className="host-name">{data.hostName || "-"}</div>
         <div className="host-tag">{data.gender}</div>
         <div className="sys-name-row">
-          系统名：
-          {editingName ? (
-            <>
-              <input
-                className="field"
-                style={{ width: 110, padding: "4px 6px", fontSize: 11 }}
-                value={nameDraft}
-                autoFocus
-                onChange={(e) => setNameDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && nameDraft.trim()) {
-                    renameSystem(nameDraft.trim());
-                    setEditingName(false);
-                  }
-                }}
-              />
-              <button onClick={() => { if (nameDraft.trim()) renameSystem(nameDraft.trim()); setEditingName(false); }}>
-                ✓
-              </button>
-            </>
-          ) : (
-            <>
-              <b>{data.systemName}</b>
-              <button onClick={() => { setNameDraft(data.systemName); setEditingName(true); }} title="改系统名">
-                <i className="fa-solid fa-pen" />
-              </button>
-            </>
-          )}
+          系统名：<b>{data.systemName}</b>
         </div>
       </div>
 

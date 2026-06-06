@@ -86,6 +86,7 @@ interface Store {
   setAvatar: (b64: string) => void;
   renameSystem: (name: string) => void;
   renamePet: (name: string) => void;
+  setGender: (gender: string) => void;
   grindSkill: (key: string) => void;
   addTalent: (name: string) => void;
   removeTalent: (id: number) => void;
@@ -172,6 +173,9 @@ export const useStore = create<Store>((set, get) => ({
   }),
   renamePet: (name) => get().apply((d) => {
     d.petName = name;
+  }),
+  setGender: (gender) => get().apply((d) => {
+    d.gender = gender;
   }),
 
   grindSkill: (key) => {

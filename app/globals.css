@@ -221,3 +221,57 @@ body {
 .muted { color: var(--text-muted); }
 .ticker { position: absolute; bottom: 12px; left: 36px; font-size: 11px; color: var(--text-muted); pointer-events: none; }
 .chart-box { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 4px; padding: 20px; }
+
+/* ===== 配置面板 modal ===== */
+.config-overlay { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center;
+  background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(6px); z-index: 100001; }
+.config-modal { width: 440px; max-width: 92vw; max-height: 88vh; overflow-y: auto; background: var(--panel-bg);
+  border: 1px solid var(--primary); border-radius: 4px; padding: 34px; box-shadow: 0 0 50px var(--primary-glow);
+  backdrop-filter: blur(30px); position: relative; }
+.config-modal h2 { font-weight: 300; margin-bottom: 26px; letter-spacing: 2px; font-size: 20px; text-transform: uppercase;
+  color: var(--text-main); text-shadow: 0 0 10px var(--primary-glow); }
+.config-modal h2 span { color: var(--primary); font-weight: 700; }
+.config-avatar-row { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+.config-avatar { width: 64px; height: 64px; border-radius: 4px; border: 1px solid var(--panel-border); overflow: hidden;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; background: rgba(0,0,0,0.3); flex-shrink: 0; }
+.config-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.config-avatar i { color: var(--primary); font-size: 24px; }
+.config-actions { display: flex; gap: 12px; margin-top: 30px; }
+.config-actions button { flex: 1; }
+.btn-ghost { padding: 12px 14px; background: none; border: 1px solid var(--panel-border); color: var(--text-muted);
+  font-weight: 600; cursor: pointer; border-radius: 3px; font-family: inherit; transition: all 0.25s; }
+.btn-ghost:hover { border-color: var(--text-muted); color: var(--text-main); }
+
+/* ===== 亮色模式（赛博朋克浅色版）===== */
+:root[data-theme="light"] {
+  --bg-dark: #e9eef5;
+  --panel-bg: rgba(255, 255, 255, 0.78);
+  --panel-border: rgba(0, 150, 190, 0.35);
+  --primary: #008fb0;
+  --primary-glow: rgba(0, 143, 176, 0.3);
+  --purple: #9b34d4;
+  --pink: #e0244c;
+  --green: #1ba84a;
+  --red: #e0342a;
+  --gold: #b07d00;
+  --text-main: #1b2030;
+  --text-muted: #5c6478;
+  --matrix-grid: radial-gradient(rgba(0, 143, 176, 0.09) 1px, transparent 1px);
+}
+/* 浅色下覆盖硬编码深色表面 */
+:root[data-theme="light"] .sidebar { background: rgba(255, 255, 255, 0.82); }
+:root[data-theme="light"] .host-name,
+:root[data-theme="light"] .panel-title,
+:root[data-theme="light"] .card-mini .val,
+:root[data-theme="light"] .stat-header b { color: var(--text-main); }
+:root[data-theme="light"] .field,
+:root[data-theme="light"] .review-textarea,
+:root[data-theme="light"] .input-group input { background: rgba(255, 255, 255, 0.92); color: var(--text-main); }
+:root[data-theme="light"] .card-mini,
+:root[data-theme="light"] .task-node,
+:root[data-theme="light"] .daily-row,
+:root[data-theme="light"] .goods-card,
+:root[data-theme="light"] .wheel-panel,
+:root[data-theme="light"] .bag-strip { background: rgba(0, 0, 0, 0.03); border-color: rgba(0, 0, 0, 0.08); }
+:root[data-theme="light"] .progress-track { background: rgba(0, 0, 0, 0.08); border-color: rgba(0, 0, 0, 0.06); }
+:root[data-theme="light"] .config-avatar { background: rgba(0, 0, 0, 0.04); }
