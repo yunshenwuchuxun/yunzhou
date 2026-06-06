@@ -69,10 +69,22 @@ export async function verifyToken(secret: string, token: string): Promise<boolea
   }
 }
 
+// 生产环境必须显式配置密钥与密码；缺失时 fail-closed，避免使用可猜测的默认值。
+// 仅在非生产(开发)环境提供兜底，方便本地零配置启动。
 export function getSecret(): string {
-  return process.env.SESSION_SECRET || "dev-secret-change-me";
+  const s = process.env.SESSION_SECRET;
+  if (s && s.length >= 16) return s;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET 未配置（生产环境必须设置，且至少 16 位）");
+  }
+  return "dev-only-insecure-secret-do-not-use-in-prod";
 }
 
 export function getPassword(): string {
-  return process.env.APP_PASSWORD || "yunzhou2027";
+  const p = process.env.APP_PASSWORD;
+  if (p) return p;
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("APP_PASSWORD 未配置（生产环境必须设置）");
+  }
+  return "dev-password";
 }
